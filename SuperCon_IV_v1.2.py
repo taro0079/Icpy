@@ -234,6 +234,7 @@ def get_N_value(df):
     return format(*solv.coef_, '.2f') 
 
 # 実行処理
+print(val.current)
 def main():
         
     # データの取得
