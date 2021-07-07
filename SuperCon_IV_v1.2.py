@@ -41,6 +41,87 @@ from matplotlib import pyplot as plt
 
 # util関数
 # 実行処理#rawデータの読み込み
+
+
+class Datafilerepo():
+    def __init__(self, path):
+        self._path = path
+        self._filelst = natsorted(glob.glob(path))
+        self._numfile = len(self._filelst)
+        self._outfilename = [os.path.splitext(os.path.basename(p))[
+            0] for p in self._filelst]
+
+    def getPath(self):
+        return self._path
+
+    def getFileLst(self):
+        return self._filelst
+
+    def getNumFile(self):
+        return self._numfile
+
+    def getOutFileName(self):
+        return self._outfilename
+
+    def readlines(self):
+        f = open(self._filelst[0])
+        lines = f.readlines()
+        return lines
+
+    def getHeader(self):
+        return self.readlines()[0].split()
+
+    def splitlines(self, lines, header=2):
+        return [i.split() for i in lines][header:-1]
+
+    def cvttoFloat(self, lines):
+        return [map(float, i) for i in lines]
+
+    def cvttoDataFrame(self, data):
+        return pd.DataFrame(data)
+
+    def read(self):
+        lines = self.readlines()
+        splitlines = self.splitlines(lines)
+        floatlines = self.cvttoFloat(splitlines)
+        df = self.cvttoDataFrame(floatlines)
+        df.columns = self.getHeader()
+        return Data(df)
+
+
+class Data():
+    def __init__(self, data):
+        self._current = data.iloc[:, 0].values.reshape(-1, 1)
+        self._voltage = data.iloc[:, 1].values.reshape(-1, 1)
+
+    def getCurrent(self):
+        return self._current
+
+    def getVoltage(self):
+        return self._voltage
+
+
+class Plots():
+    def __init__(self, figsize=(6, 6)):
+        self.fig = plt.figure(figsize=figsize)
+
+    def simplePlot(self, voltage, current):
+        ax1 = self.fig.add_subplot(111)
+        ax1.set_xlabel("Current (A)")
+        ax1.set_ylabel("Voltage (uV)")
+        ax1.plot(voltage, current)
+        plt.show()
+
+
+if __name__ == '__main__':
+    datainfo = Datafilerepo("./testdata/*")
+    data = datainfo.read()
+    p = Plots()
+    p.simplePlot(data.getCurrent(), data.getVoltage())
+
+
+    
+
 def read_files(extension):
 
     # 読み込みファイルの取得
@@ -149,7 +230,7 @@ def make_n_value(df,file):
     Ic = df['current'][index_min:index_max]
     Vc = df['voltage'][index_min:index_max]
     
-    x = np.log(Ic,dtype = float).values.reshape(-1, 1)
+    x = np.log(Ic,dtype = float).reshape(-1, 1)
     y = np.log(Vc,dtype = float)
     
     n = get_N_value(df)
@@ -225,7 +306,7 @@ def get_N_value(df):
     Ic = df['current'][index_min:index_max]
     Vc = df['voltage'][index_min:index_max]
     
-    x = np.log(Ic,dtype = float).values.reshape(-1, 1)
+    x = np.log(Ic,dtype = float).reshape(-1, 1)
     y = np.log(Vc,dtype = float)
     
     solv = LinearRegression()
@@ -234,76 +315,76 @@ def get_N_value(df):
     return format(*solv.coef_, '.2f') 
 
 # 実行処理
-print(val.current)
-def main():
+#print(val.current)
+#def main():
+#        
+#    # データの取得
+#    #　rawファイルは拡張子がない
+#    default_extension = ''
+#
+#    # ファイルの読み込み
+#    [files, f_num, fname] = read_files(default_extension)
+#    
+#    #　磁場，臨界電流，n値の初期設定
+#    Magnetic_Field = []
+#    Ic = []
+#    n_value = []
+#
+#    #　I-V特性のマルチプロットの初期設定
+#    hfont = {'fontname': 'Arial'}
+#    fig, ax = plt.subplots(1,1, figsize=(7,7))
+#    cmap = plt.get_cmap("tab10")
+#    
+#    
+#    # データ抽出（分割された複数ファイル）
+#    for i in range(f_num):
+#        
+#        try:
+#            #　数値データ部，磁場，n値の取得
+#            data,mf,n = data_extract(files[i])        
+#            Magnetic_Field.append(mf)
+#            n_value.append(n)
+#
+#            #　臨界電流値の取得
+#            index = getNearestValue(data['Electric_field_strength'], 1)
+#            Ic.append(data['current'][index])
+#        
+#            #　数値データのcsv出力
+#            data.to_csv(fname[i]+'_extract.csv')
+#
+#            #　可視化
+#            make_IV(data, fname[i])   
+#            make_n_value(data, fname[i])
+#        
+#        except:
+#            continue
+#
+#        
+#        #マルチプロット
+#        X = data['current']
+#        Y = data['Electric_field_strength'] 
+#        
+#        ax.plot(X,Y,color=cmap(i),label = fname[i])
+#    
+#    ax.set_xlabel('Current [A]',**hfont, fontsize = 18)
+#    ax.set_ylabel('Voltage [uV/cm]',**hfont, fontsize = 18)
+#    ax.set_ylim(0,80)
+#    ax.grid(which = "major", axis = "both", color = "black", alpha = 0.8,linestyle = "--", linewidth = 0.3)
+#
+#    ax.tick_params(direction = "inout", length = 5, labelsize=14)
+#    ax.set_title('I-V-all',**hfont, fontsize = 16)
+#    ax.legend()
+#    fig.savefig('I-V-all.png', dpi=300)
+#    
+#    # Ic-Bの作成と出力
+#    df_MF = pd.DataFrame(Magnetic_Field, columns = ['Magnetic_Field'])
+#    df_Ic = pd.DataFrame(Ic,columns = ['Ic'])
+#    df_n = pd.DataFrame(n_value,columns = ['n_value'])
+#    df = pd.concat([df_MF,df_Ic,df_n],axis=1)
+#    
+#    make_Ic_B(df)
+#    
+#    df.to_csv('Ic-MF-n.csv',index = False)
         
-    # データの取得
-    #　rawファイルは拡張子がない
-    default_extension = ''
-
-    # ファイルの読み込み
-    [files, f_num, fname] = read_files(default_extension)
-    
-    #　磁場，臨界電流，n値の初期設定
-    Magnetic_Field = []
-    Ic = []
-    n_value = []
-
-    #　I-V特性のマルチプロットの初期設定
-    hfont = {'fontname': 'Arial'}
-    fig, ax = plt.subplots(1,1, figsize=(7,7))
-    cmap = plt.get_cmap("tab10")
-    
-    
-    # データ抽出（分割された複数ファイル）
-    for i in range(f_num):
-        
-        try:
-            #　数値データ部，磁場，n値の取得
-            data,mf,n = data_extract(files[i])        
-            Magnetic_Field.append(mf)
-            n_value.append(n)
-
-            #　臨界電流値の取得
-            index = getNearestValue(data['Electric_field_strength'], 1)
-            Ic.append(data['current'][index])
-        
-            #　数値データのcsv出力
-            data.to_csv(fname[i]+'_extract.csv')
-
-            #　可視化
-            make_IV(data, fname[i])   
-            make_n_value(data, fname[i])
-        
-        except:
-            continue
-
-        
-        #マルチプロット
-        X = data['current']
-        Y = data['Electric_field_strength'] 
-        
-        ax.plot(X,Y,color=cmap(i),label = fname[i])
-    
-    ax.set_xlabel('Current [A]',**hfont, fontsize = 18)
-    ax.set_ylabel('Voltage [uV/cm]',**hfont, fontsize = 18)
-    ax.set_ylim(0,80)
-    ax.grid(which = "major", axis = "both", color = "black", alpha = 0.8,linestyle = "--", linewidth = 0.3)
-
-    ax.tick_params(direction = "inout", length = 5, labelsize=14)
-    ax.set_title('I-V-all',**hfont, fontsize = 16)
-    ax.legend()
-    fig.savefig('I-V-all.png', dpi=300)
-    
-    # Ic-Bの作成と出力
-    df_MF = pd.DataFrame(Magnetic_Field, columns = ['Magnetic_Field'])
-    df_Ic = pd.DataFrame(Ic,columns = ['Ic'])
-    df_n = pd.DataFrame(n_value,columns = ['n_value'])
-    df = pd.concat([df_MF,df_Ic,df_n],axis=1)
-    
-    make_Ic_B(df)
-    
-    df.to_csv('Ic-MF-n.csv',index = False)
-        
-if __name__ == '__main__':
-    main()
+#if __name__ == '__main__':
+#    main()
