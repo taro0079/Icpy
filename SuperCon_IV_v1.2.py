@@ -2,7 +2,7 @@
 # SuperCon_IV.py ver1.2
 #
 # Copyright (c) 2021, Data PlatForm Center, NIMS
-#
+# fixing by Taro Morita
 # This software is released under the MIT License.
 #-------------------------------------------------
 # -*- coding: utf-8 -*-
