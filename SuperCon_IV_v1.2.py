@@ -112,6 +112,9 @@ class Data():
     # spline用x配列（電流）作成
     def spline_x_make(self, xnum=1000):
         return np.linspace(0, self.current_max(), xnum)
+    
+    def spline_ydata(self, xnum=1000):
+        return self.spline_fit()(self.spline_x_make())
 
 
 class Plots():
