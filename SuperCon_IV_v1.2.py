@@ -101,8 +101,17 @@ class Data():
     def getVoltage(self):
         return self._voltage
 
+    # spline fitを出力する関数
     def spline_fit(self):
         return InterpolatedUnivariateSpline(self._current, self._voltage)
+    
+    # 電流値の最大を求める関数
+    def current_max(self):
+        return np.max(self._current)
+
+    # spline用x配列（電流）作成
+    def spline_x_make(self, xnum=1000):
+        return np.linspace(0, self.current_max(), xnum)
 
 
 class Plots():
