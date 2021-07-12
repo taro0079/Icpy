@@ -31,6 +31,7 @@ import glob
 from natsort import natsorted
 import re
 
+from scipy.interpolate import InterpolatedUnivariateSpline
 # 数値処理用
 import pandas as pd
 import numpy as np
@@ -99,6 +100,9 @@ class Data():
 
     def getVoltage(self):
         return self._voltage
+
+    def spline_fit(self):
+        return InterpolatedUnivariateSpline(self._current, self._voltage)
 
 
 class Plots():
