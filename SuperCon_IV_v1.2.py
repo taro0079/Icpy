@@ -1,10 +1,10 @@
-#-------------------------------------------------
+# -------------------------------------------------
 # SuperCon_IV.py ver1.2
 #
 # Copyright (c) 2021, Data PlatForm Center, NIMS
 # fixing by Taro Morita
 # This software is released under the MIT License.
-#-------------------------------------------------
+# -------------------------------------------------
 # -*- coding: utf-8 -*-
 
 
@@ -124,10 +124,7 @@ if __name__ == '__main__':
     p.simplePlot(data.getCurrent(), data.getVoltage())
 
 
-    
-
 def read_files(extension):
-
     # 読み込みファイルの取得
     # 拡張子がないため，"data"フォルダーに格納されたrawファイルを読み出すことにする
     path = 'data/*' + extension
@@ -137,152 +134,162 @@ def read_files(extension):
     number_of_files = len(input_files)
 
     # 拡張子を抜いたファイル名（出力用）
-    output_name = [os.path.splitext(os.path.basename(p))[0] for p in input_files]
-    
+    output_name = [os.path.splitext(os.path.basename(p))[0]
+                   for p in input_files]
+
     print(output_name)
     return input_files, number_of_files, output_name
+
 
 def data_extract(file):
 
     # ファイルの読み込みとヘッダー部の読み出し
-    df_header = pd.read_csv(file, header=None,nrows=10, delimiter=';') 
-    
+    df_header = pd.read_csv(file, header=None, nrows=10, delimiter=';')
+
     #　端子間距離の取得
     VV_length = df_header[1][1]
 
-    #M　磁場強度の取得
+    # M　磁場強度の取得
     text = df_header[0][4]
 
     # 出力がTypeI型の場合
-    
+
     if "Time" in text:
-        pattern = "(\d\.\d{6}\d*\.\d{6})Time" 
+        pattern = "(\d\.\d{6}\d*\.\d{6})Time"
         pattern2 = "NaN(\d*\.\d{6})Time"
 
-    
         if "NaN" in text:
-            field = float(re.search(pattern2,text).group().replace('Time', '')[3:])
+            field = float(
+                re.search(pattern2, text).group().replace('Time', '')[3:])
         else:
-            field = float(re.search(pattern,text).group().replace('Time', '')[8:])
-        
+            field = float(
+                re.search(pattern, text).group().replace('Time', '')[8:])
+
         header = 5
 
-
-    #出力がType II型の場合    
+    # 出力がType II型の場合
     else:
         text = df_header[0][7]
         pattern = "(\d*\.\d{6})Time"
-        field = float(re.search(pattern,text).group().replace('Time', ''))
-        
+        field = float(re.search(pattern, text).group().replace('Time', ''))
+
         header = 8
-        
-    #　数値部の取り出し
+
+    # 数値部の取り出し
     df_val = pd.read_csv(file,
-                 header= header, 
-                 delim_whitespace=True, 
-                 names=('time', 'current', 'voltage','Temp.1','Temp.2','Temp.3'))
-    
-    #　電界強度の追加    
+                         header=header,
+                         delim_whitespace=True,
+                         names=('time', 'current', 'voltage', 'Temp.1', 'Temp.2', 'Temp.3'))
+
+    # 電界強度の追加
     df_val['Electric_field_strength'] = df_val['voltage']/float(VV_length)
-    
-    #　I-Vからのn値の計算
+
+    # I-Vからのn値の計算
     n_value = get_N_value(df_val)
-    
+
     return df_val, field, n_value
 
-def make_IV(df,file):
 
-    #　図の設定 
-    hfont = {'fontname': 'Arial'}
-    fig, ax = plt.subplots(1,1, figsize=(7,7))
-             
-    X = df['current']
-    Y = df['Electric_field_strength'] 
-                
-    ax.plot(X,Y,c='blue')
-
-     #　掃引速度の計算
-    sweep_time = df.iloc[-1][1]/df.iloc[-1][0]
-
-    #　作図のデザイン
-    ax.set_xlabel('Current [A]',**hfont, fontsize = 18)
-    ax.set_ylabel('Voltage [uV/cm]',**hfont, fontsize = 18)
-    #ax.set_xlim(0,2)
-    ax.set_ylim(0,100)
-    ax.tick_params(direction = "inout", length = 5, labelsize=14)
-    ax.text(0.01,90,'Sweep Rate: {:.3f} A/sec'.format(sweep_time), **hfont, fontsize = 16)
-    ax.set_title(file,**hfont, fontsize = 16)
-    ax.grid(which = "major", axis = "both", color = "black", alpha = 0.8,linestyle = "--", linewidth = 0.3)
-
-    # y軸に目盛線を設定
-    #ax.grid(which = "major", axis = "y", color = "blue", alpha = 0.8,linestyle = "--", linewidth = 0.1)
-    
-    #出力
-    plt.savefig(file + '_I-V.png', dpi=300)
-
-def make_n_value(df,file):
+def make_IV(df, file):
 
     #　図の設定
     hfont = {'fontname': 'Arial'}
-    fig, ax = plt.subplots(1,1, figsize=(7,7))
-    
+    fig, ax = plt.subplots(1, 1, figsize=(7, 7))
+
+    X = df['current']
+    Y = df['Electric_field_strength']
+
+    ax.plot(X, Y, c='blue')
+
+    #　掃引速度の計算
+    sweep_time = df.iloc[-1][1]/df.iloc[-1][0]
+
+    #　作図のデザイン
+    ax.set_xlabel('Current [A]', **hfont, fontsize=18)
+    ax.set_ylabel('Voltage [uV/cm]', **hfont, fontsize=18)
+    # ax.set_xlim(0,2)
+    ax.set_ylim(0, 100)
+    ax.tick_params(direction="inout", length=5, labelsize=14)
+    ax.text(
+        0.01, 90, 'Sweep Rate: {:.3f} A/sec'.format(sweep_time), **hfont, fontsize=16)
+    ax.set_title(file, **hfont, fontsize=16)
+    ax.grid(which="major", axis="both", color="black",
+            alpha=0.8, linestyle="--", linewidth=0.3)
+
+    # y軸に目盛線を設定
+    #ax.grid(which = "major", axis = "y", color = "blue", alpha = 0.8,linestyle = "--", linewidth = 0.1)
+
+    # 出力
+    plt.savefig(file + '_I-V.png', dpi=300)
+
+
+def make_n_value(df, file):
+
+    #　図の設定
+    hfont = {'fontname': 'Arial'}
+    fig, ax = plt.subplots(1, 1, figsize=(7, 7))
+
     # 電圧領域として1～10V/cm範囲での電流電圧特性からn値を算出
-   
+
     index_min = getNearestValue(df['voltage'], 1)
     index_max = getNearestValue(df['voltage'], 10)
 
     Ic = df['current'][index_min:index_max]
     Vc = df['voltage'][index_min:index_max]
-    
-    x = np.log(Ic,dtype = float).reshape(-1, 1)
-    y = np.log(Vc,dtype = float)
-    
+
+    x = np.log(Ic, dtype=float).reshape(-1, 1)
+    y = np.log(Vc, dtype=float)
+
     n = get_N_value(df)
-    
-    ax.plot(x,y,c='blue',marker="o",linestyle='--')
+
+    ax.plot(x, y, c='blue', marker="o", linestyle='--')
 
     #　作図のデザイン
-    ax.set_xlabel('log (current) [A]',**hfont, fontsize = 18)
-    ax.set_ylabel('log (voltage) [uV]',**hfont, fontsize = 18)
-    ax.tick_params(direction = "inout", which = "both", length = 5, labelsize=14)
-    ax.text(min(x),max(y)-0.1,'n value: {} '.format(n), **hfont, fontsize = 16)
-    ax.grid(which = "major", axis = "x", color = "black", alpha = 0.8,linestyle = "--", linewidth = 0.3)
-    ax.grid(which = "major", axis = "y", color = "black", alpha = 0.8,linestyle = "--", linewidth = 0.3)
-    ax.set_title(file,**hfont, fontsize = 16)
-    #ax.set_xlim(4,12)
-    #ax.set_ylim(0.001,100)
-    
-    #出力
+    ax.set_xlabel('log (current) [A]', **hfont, fontsize=18)
+    ax.set_ylabel('log (voltage) [uV]', **hfont, fontsize=18)
+    ax.tick_params(direction="inout", which="both", length=5, labelsize=14)
+    ax.text(min(x), max(y)-0.1, 'n value: {} '.format(n), **hfont, fontsize=16)
+    ax.grid(which="major", axis="x", color="black",
+            alpha=0.8, linestyle="--", linewidth=0.3)
+    ax.grid(which="major", axis="y", color="black",
+            alpha=0.8, linestyle="--", linewidth=0.3)
+    ax.set_title(file, **hfont, fontsize=16)
+    # ax.set_xlim(4,12)
+    # ax.set_ylim(0.001,100)
+
+    # 出力
     plt.savefig(file + '_n-value.png', dpi=300)
 
-    
+
 def make_Ic_B(df):
 
-    #図の設定
+    # 図の設定
     hfont = {'fontname': 'Arial'}
-    fig, ax = plt.subplots(1,1, figsize=(7,7))
-    
-            
+    fig, ax = plt.subplots(1, 1, figsize=(7, 7))
+
     X = df['Magnetic_Field']
-    Y = df['Ic'] 
-         
-    ax.plot(X,Y,c='blue',marker="o",linestyle='--')
+    Y = df['Ic']
 
-    #作図のデザイン
+    ax.plot(X, Y, c='blue', marker="o", linestyle='--')
+
+    # 作図のデザイン
     ax.set_yscale('log')
-    ax.set_xlabel('B [T]',**hfont, fontsize = 18)
-    ax.set_ylabel('Critical Current [A]',**hfont, fontsize = 18)
-    ax.tick_params(direction = "inout", which = "both", length = 5, labelsize=14)
-    ax.grid(which = "major", axis = "x", color = "black", alpha = 0.8,linestyle = "--", linewidth = 0.3)
-    ax.grid(which = "minor", axis = "y", color = "black", alpha = 0.8,linestyle = "--", linewidth = 0.3)
+    ax.set_xlabel('B [T]', **hfont, fontsize=18)
+    ax.set_ylabel('Critical Current [A]', **hfont, fontsize=18)
+    ax.tick_params(direction="inout", which="both", length=5, labelsize=14)
+    ax.grid(which="major", axis="x", color="black",
+            alpha=0.8, linestyle="--", linewidth=0.3)
+    ax.grid(which="minor", axis="y", color="black",
+            alpha=0.8, linestyle="--", linewidth=0.3)
 
-    ax.set_xlim(4,12)
-    ax.set_ylim(0.001,100)
-    ax.set_title('Ic - B(T)',**hfont, fontsize = 16)
-    
-    #出力
+    ax.set_xlim(4, 12)
+    ax.set_ylim(0.001, 100)
+    ax.set_title('Ic - B(T)', **hfont, fontsize=16)
+
+    # 出力
     plt.savefig('Ic-B.png', dpi=300)
-    
+
+
 def getNearestValue(list, num):
     """
     概要: リストからある値に最も近い値を返却する関数
@@ -295,6 +302,7 @@ def getNearestValue(list, num):
     idx = np.abs(np.asarray(list) - num).argmin()
     return idx
 
+
 def get_N_value(df):
     """
     概要: I-V特性からn値を算出する
@@ -302,33 +310,33 @@ def get_N_value(df):
     max：電圧10Vのインデックスを取得
     return：log-log値の傾きをLinearRegressionで算出．その傾きをreturnする
     """
-    
+
     # 電圧領域として1～10V/cm範囲での電流電圧特性からn値を算出
     index_min = getNearestValue(df['voltage'], 1)
     index_max = getNearestValue(df['voltage'], 10)
 
     Ic = df['current'][index_min:index_max]
     Vc = df['voltage'][index_min:index_max]
-    
-    x = np.log(Ic,dtype = float).reshape(-1, 1)
-    y = np.log(Vc,dtype = float)
-    
+
+    x = np.log(Ic, dtype=float).reshape(-1, 1)
+    y = np.log(Vc, dtype=float)
+
     solv = LinearRegression()
-    solv.fit(x,y)
-    
-    return format(*solv.coef_, '.2f') 
+    solv.fit(x, y)
+
+    return format(*solv.coef_, '.2f')
 
 # 実行処理
-#print(val.current)
-#def main():
-#        
+# print(val.current)
+# def main():
+#
 #    # データの取得
 #    #　rawファイルは拡張子がない
 #    default_extension = ''
 #
 #    # ファイルの読み込み
 #    [files, f_num, fname] = read_files(default_extension)
-#    
+#
 #    #　磁場，臨界電流，n値の初期設定
 #    Magnetic_Field = []
 #    Ic = []
@@ -338,38 +346,38 @@ def get_N_value(df):
 #    hfont = {'fontname': 'Arial'}
 #    fig, ax = plt.subplots(1,1, figsize=(7,7))
 #    cmap = plt.get_cmap("tab10")
-#    
-#    
+#
+#
 #    # データ抽出（分割された複数ファイル）
 #    for i in range(f_num):
-#        
+#
 #        try:
 #            #　数値データ部，磁場，n値の取得
-#            data,mf,n = data_extract(files[i])        
+#            data,mf,n = data_extract(files[i])
 #            Magnetic_Field.append(mf)
 #            n_value.append(n)
 #
 #            #　臨界電流値の取得
 #            index = getNearestValue(data['Electric_field_strength'], 1)
 #            Ic.append(data['current'][index])
-#        
+#
 #            #　数値データのcsv出力
 #            data.to_csv(fname[i]+'_extract.csv')
 #
 #            #　可視化
-#            make_IV(data, fname[i])   
+#            make_IV(data, fname[i])
 #            make_n_value(data, fname[i])
-#        
+#
 #        except:
 #            continue
 #
-#        
+#
 #        #マルチプロット
 #        X = data['current']
-#        Y = data['Electric_field_strength'] 
-#        
+#        Y = data['Electric_field_strength']
+#
 #        ax.plot(X,Y,color=cmap(i),label = fname[i])
-#    
+#
 #    ax.set_xlabel('Current [A]',**hfont, fontsize = 18)
 #    ax.set_ylabel('Voltage [uV/cm]',**hfont, fontsize = 18)
 #    ax.set_ylim(0,80)
@@ -379,16 +387,16 @@ def get_N_value(df):
 #    ax.set_title('I-V-all',**hfont, fontsize = 16)
 #    ax.legend()
 #    fig.savefig('I-V-all.png', dpi=300)
-#    
+#
 #    # Ic-Bの作成と出力
 #    df_MF = pd.DataFrame(Magnetic_Field, columns = ['Magnetic_Field'])
 #    df_Ic = pd.DataFrame(Ic,columns = ['Ic'])
 #    df_n = pd.DataFrame(n_value,columns = ['n_value'])
 #    df = pd.concat([df_MF,df_Ic,df_n],axis=1)
-#    
+#
 #    make_Ic_B(df)
-#    
+#
 #    df.to_csv('Ic-MF-n.csv',index = False)
-        
-#if __name__ == '__main__':
+
+# if __name__ == '__main__':
 #    main()
