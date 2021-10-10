@@ -7,6 +7,7 @@ import pandas as pd
 import os
 import seaborn as sns
 
+
 def main():
     ic_list = []
     for i in FileRegex('testdata/').file_path_list:
@@ -19,15 +20,11 @@ def main():
         'number': sample_number,
         'magneticfield': magnetic_field,
         'ic': ic_list
-        })
+    })
     print(summary_df)
-    sns.lineplot(data=summary_df, x=summary_df.magneticfield, y=summary_df.ic, hue=summary_df.number)
+    sns.lineplot(data=summary_df, x=summary_df.magneticfield,
+                 y=summary_df.ic, hue=summary_df.number)
     plt.show()
-
-
-
-
-
 
 
 if __name__ == '__main__':
