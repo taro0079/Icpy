@@ -12,3 +12,7 @@ calclate critical current (Ic) from experimental data for I - V curve autimatica
 2. Delete baseline shifting caused by connection resistance, etc.
 3. Use solver to y - Vc (Vc: electrical criterion), and define the last element of roots array as Ic.
 
+
+## Future
+- Refactoring
+- making a API
