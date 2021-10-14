@@ -12,7 +12,7 @@ class FileRegex:
 
     def extract_sample_number(self):
         matched = [re.search(r'^\d{2}', ff) for ff in self.file_name_list]
-        return [int(ff.group()) for ff in matched]
+        return ['sample' + ff.group() for ff in matched]
 
     def extract_magnetic_filed(self):
         matched = [re.search(r'\d{2}(?=T)', ff) for ff in self.file_name_list]

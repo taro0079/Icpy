@@ -21,10 +21,11 @@ def main():
         'magneticfield': magnetic_field,
         'ic': ic_list
     })
-    print(summary_df)
-    sns.lineplot(data=summary_df, x=summary_df.magneticfield,
-                 y=summary_df.ic, hue=summary_df.number)
-    plt.show()
+    sns.set()
+    sns.lineplot(data=summary_df, x='magneticfield',
+                 y='ic', hue='number', style='number', markers=True, dashes=False)
+    plt.savefig('out.pdf', dpi=300)
+    
 
 
 if __name__ == '__main__':
